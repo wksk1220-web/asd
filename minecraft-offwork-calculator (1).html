@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛏️ MINECRAFT 퇴근시간 계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mc-dirt: #8B5A2B;
+            --mc-grass: #5C8C3A;
+            --mc-stone: #8B8B8B;
+            --mc-dark: #3F3F3F;
+            --mc-gold: #F4D03F;
+            --mc-green: #4CAF50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(#1a2526, #0f1617);
+            color: #fff;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            image-rendering: pixelated;
+        }
+        
+        .header {
+            background: linear-gradient(#5C8C3A, #3C5C3A);
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 8px solid #2E4A1E;
+            box-shadow: 0 8px 0 #1a2a10;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #7CB342;
+        }
+        
+        .title {
+            font-size: 2.8rem;
+            text-shadow: 
+                4px 4px 0 #000,
+                -2px -2px 0 #000,
+                2px -2px 0 #000,
+                -2px 2px 0 #000;
+            letter-spacing: 4px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .main-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .mc-panel {
+            background: #8B8B8B;
+            border: 8px solid #3F3F3F;
+            box-shadow: 
+                8px 8px 0 #2A2A2A,
+                -4px -4px 0 #C0C0C0;
+            padding: 24px;
+            position: relative;
+        }
+        
+        .mc-panel::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 4px solid #555;
+            pointer-events: none;
+        }
+        
+        .panel-header {
+            background: #3F3F3F;
+            color: #F4D03F;
+            padding: 12px 16px;
+            margin: -24px -24px 20px -24px;
+            font-size: 1.4rem;
+            text-align: center;
+            border-bottom: 4px solid #555;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 1.05rem;
+            color: #fff;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .mc-input {
+            width: 100%;
+            background: #C0C0C0;
+            border: 6px solid #3F3F3F;
+            padding: 14px 16px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.25rem;
+            color: #222;
+            box-shadow: inset 4px 4px 0 #fff, inset -4px -4px 0 #888;
+            outline: none;
+        }
+        
+        .mc-input:focus {
+            border-color: #F4D03F;
+            box-shadow: inset 4px 4px 0 #fff, inset -4px -4px 0 #888, 0 0 0 4px #F4D03F;
+        }
+        
+        .time-input {
+            font-size: 1.7rem;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+        
+        .mc-btn {
+            background: linear-gradient(#8B8B8B, #555);
+            border: 6px solid #3F3F3F;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.25rem;
+            padding: 20px 36px;
+            cursor: pointer;
+            width: 100%;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: 
+                6px 6px 0 #2A2A2A,
+                -3px -3px 0 #C0C0C0;
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mc-btn:hover {
+            background: linear-gradient(#A0A0A0, #666);
+            transform: translateY(-2px);
+        }
+        
+        .mc-btn:active {
+            transform: translateY(4px);
+            box-shadow: 2px 2px 0 #2A2A2A;
+        }
+        
+        .mc-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255,255,255,0.3),
+                transparent
+            );
+            transition: 0.4s;
+        }
+        
+        .mc-btn:hover::after {
+            left: 200%;
+        }
+        
+        .result-panel {
+            background: #5C8C3A;
+            border: 8px solid #3C5C3A;
+        }
+        
+        .result-value {
+            background: #1a2526;
+            border: 6px solid #3F3F3F;
+            padding: 20px;
+            text-align: center;
+            margin: 16px 0;
+            box-shadow: inset 4px 4px 0 #000;
+        }
+        
+        .result-label {
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .result-time {
+            font-size: 3.2rem;
+            color: #F4D03F;
+            text-shadow: 3px 3px 0 #000;
+            line-height: 1;
+        }
+        
+        .remaining-big {
+            font-size: 2.8rem;
+            color: #fff;
+            text-shadow: 4px 4px 0 #000;
+            margin: 12px 0;
+        }
+        
+        .xp-bar {
+            background: #1a2526;
+            border: 4px solid #3F3F3F;
+            height: 32px;
+            position: relative;
+            margin: 16px 0;
+            box-shadow: inset 0 4px 0 #000;
+        }
+        
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(#4CAF50, #2E7D32);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 12px #4CAF50;
+            position: relative;
+        }
+        
+        .xp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 25%,
+                rgba(255,255,255,0.4) 50%,
+                transparent 75%
+            );
+            animation: xp-shine 1.5s infinite linear;
+        }
+        
+        @keyframes xp-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        
+        .xp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.05rem;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .live-clock {
+            background: #000;
+            border: 6px solid #F4D03F;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 2.4rem;
+            color: #4CAF50;
+            text-shadow: 0 0 10px #4CAF50;
+            margin-bottom: 20px;
+            letter-spacing: 6px;
+        }
+        
+        .status {
+            padding: 12px;
+            text-align: center;
+            font-size: 1.05rem;
+            margin-top: 12px;
+        }
+        
+        .status.ready {
+            background: #2E7D32;
+            color: #fff;
+            animation: pulse 2s infinite;
+        }
+        
+        .status.over {
+            background: #c62828;
+            color: #fff;
+        }
+        
+        .fun-fact {
+            background: #3F3F3F;
+            border: 4px solid #555;
+            padding: 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-top: 20px;
+        }
+        
+        .tip-btn {
+            background: #F4D03F;
+            color: #222;
+            border: none;
+            padding: 8px 16px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 12px;
+            box-shadow: 3px 3px 0 #8B5A2B;
+        }
+        
+        .tip-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #8B5A2B;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #888;
+            font-size: 0.7rem;
+        }
+        
+        .pixel {
+            image-rendering: pixelated;
+        }
+        
+        .creeper {
+            font-size: 2rem;
+            animation: creep 3s infinite ease-in-out;
+        }
+        
+        @keyframes creep {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(#3F3F3F 1px, transparent 1px),
+                linear-gradient(90deg, #3F3F3F 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div style="max-width: 1100px; margin: 0 auto; padding: 0 20px;">
+            <h1 class="title">⛏️ MINECRAFT</h1>
+            <div class="subtitle">퇴근시간 계산기 v1.0 — OVERWORLD EDITION</div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        
+        <!-- INPUT PANEL -->
+        <div class="mc-panel">
+            <div class="panel-header">⚙️ 출근 설정</div>
+            
+            <div class="input-group">
+                <label class="input-label">⏰ 출근 시각</label>
+                <input type="time" id="start-time" class="mc-input time-input" value="09:00">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">🕒 총 근무 시간 (시간)</label>
+                <input type="number" id="work-hours" class="mc-input" value="8" min="1" max="24" step="0.5">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">🍞 점심/휴식 시간 (분)</label>
+                <input type="number" id="lunch-mins" class="mc-input" value="60" min="0" max="180">
+            </div>
+            
+            <button onclick="calculateOffWork()" class="mc-btn">
+                ⛏️ 계산하기 (CRAFT)
+            </button>
+            
+            <button onclick="resetCalculator()" class="mc-btn" 
+                    style="margin-top: 12px; background: linear-gradient(#c62828, #8B0000); font-size: 0.95rem;">
+                🔄 초기화
+            </button>
+        </div>
+        
+        <!-- RESULT PANEL -->
+        <div class="mc-panel result-panel">
+            <div class="panel-header">📜 결과 — 오늘의 퇴근</div>
+            
+            <!-- LIVE CLOCK -->
+            <div>
+                <div style="font-size: 0.7rem; color: #F4D03F; margin-bottom: 6px;">🌍 현재 시각 (Overworld)</div>
+                <div id="live-clock" class="live-clock">11:40:00</div>
+            </div>
+            
+            <!-- OFF WORK TIME -->
+            <div>
+                <div class="result-label">예상 퇴근 시각</div>
+                <div id="off-time" class="result-value">
+                    <div class="result-time" style="color: #F4D03F;">--:--</div>
+                </div>
+            </div>
+            
+            <!-- REMAINING -->
+            <div>
+                <div class="result-label">남은 시간</div>
+                <div id="remaining" class="result-value" style="min-height: 90px; display: flex; align-items: center; justify-content: center;">
+                    <div>
+                        <div id="remaining-text" style="font-size: 2.6rem; color: #fff; text-shadow: 3px 3px 0 #000;">--시간 --분</div>
+                        <div id="remaining-seconds" style="font-size: 1rem; color: #4CAF50;">--초</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- XP PROGRESS BAR -->
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 6px;">
+                    <span style="color: #F4D03F;">작업 진행도</span>
+                    <span id="progress-text" style="color: #fff;">0%</span>
+                </div>
+                <div class="xp-bar">
+                    <div id="xp-fill" class="xp-fill" style="width: 0%"></div>
+                    <div class="xp-text" id="xp-text">LVL 0 / 8h</div>
+                </div>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+            
+            <!-- FUN FACT -->
+            <div class="fun-fact">
+                <div style="color: #F4D03F; margin-bottom: 8px;">💡 마인크래프트 팁</div>
+                <div id="tip-text" style="line-height: 1.4;">크리퍼를 피하듯이 스트레스를 피하세요! 오늘도 수고 많으셨습니다!</div>
+                <button onclick="newTip()" class="tip-btn">새 팁 보기</button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="footer">
+        <p>⛏️ Made for the Overworld • Don't dig straight down • 퇴근 후에는 다이아몬드 캐기 (쉬기)!</p>
+        <p style="margin-top: 8px; opacity: 0.6;">v1.0 • Minecraft Edition • Press Start to calculate</p>
+    </div>
+    
+    <script>
+        // Minecraft Tips
+        const tips = [
+            "크리퍼를 조심하며 퇴근하세요! 💥",
+            "다이아몬드를 캐듯이 오늘 하루를 캐내셨네요! 💎",
+            "엔더 진주처럼 빨리 집으로 텔레포트 하세요! 🌀",
+            "침대에 누워서 오늘의 모험을 기록하세요! 🛏️",
+            "철 곡괭이로 일하셨다면 이제 금 곡괭이로 휴식하세요! ⛏️",
+            "네더에서 돌아온 것처럼 따뜻한 집으로 가세요! 🔥",
+            "마을 주민처럼 친절하게 동료들과 인사하고 퇴근! 🏠",
+            "스켈레톤 화살을 피하듯이 야근을 피하세요! 🏹",
+            "오늘도 레벨업! 내일은 더 많은 경험치 획득! ✨",
+            "시들지 않는 꽃처럼 당신의 하루도 아름다웠어요! 🌸"
+        ];
+        
+        let currentTipIndex = 0;
+        let offWorkTime = null;
+        let startDateTime = null;
+        let totalWorkMs = 0;
+        let countdownInterval = null;
+        
+        // Live Clock
+        function updateLiveClock() {
+            const clockEl = document.getElementById('live-clock');
+            setInterval(() => {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ko-KR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                clockEl.textContent = timeStr;
+                
+                // Update countdown if active
+                if (offWorkTime && countdownInterval) {
+                    updateCountdown();
+                }
+            }, 1000);
+        }
+        
+        // New random tip
+        function newTip() {
+            const tipEl = document.getElementById('tip-text');
+            currentTipIndex = (currentTipIndex + 1) % tips.length;
+            tipEl.style.transition = 'none';
+            tipEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                tipEl.textContent = tips[currentTipIndex];
+                tipEl.style.transition = 'opacity 0.4s ease';
+                tipEl.style.opacity = '1';
+            }, 100);
+        }
+        
+        // Calculate off-work time
+        function calculateOffWork() {
+            const startTimeInput = document.getElementById('start-time').value;
+            const workHours = parseFloat(document.getElementById('work-hours').value) || 8;
+            const lunchMins = parseFloat(document.getElementById('lunch-mins').value) || 60;
+            
+            if (!startTimeInput) {
+                alert('출근 시각을 입력해주세요!');
+                return;
+            }
+            
+            // Parse start time
+            const [startHour, startMin] = startTimeInput.split(':').map(Number);
+            
+            // Get current date for reference
+            const now = new Date();
+            startDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin, 0);
+            
+            // Calculate total work minutes
+            const totalMins = (workHours * 60) + lunchMins;
+            totalWorkMs = totalMins * 60 * 1000;
+            
+            // Calculate off-work time
+            offWorkTime = new Date(startDateTime.getTime() + totalWorkMs);
+            
+            // Display off-work time
+            const offTimeEl = document.getElementById('off-time');
+            const offTimeStr = offWorkTime.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            offTimeEl.innerHTML = `<div class="result-time" style="color: #F4D03F;">${offTimeStr}</div>`;
+            
+            // Start countdown
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // Initial update
+            updateCountdown();
+            
+            // Show success status
+            const statusEl = document.getElementById('status');
+            statusEl.style.display = 'block';
+            statusEl.className = 'status ready';
+            statusEl.innerHTML = '✅ 계산 완료! 이제 퇴근까지 카운트다운!';
+            
+            // Fun animation on button
+            const btns = document.querySelectorAll('.mc-btn');
+            btns[0].style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btns[0].style.transform = 'scale(1)';
+            }, 150);
+            
+            // Random tip on first calculate
+            if (!document.getElementById('tip-text').dataset.shown) {
+                document.getElementById('tip-text').dataset.shown = 'true';
+                setTimeout(() => {
+                    newTip();
+                }, 800);
+            }
+        }
+        
+        // Update countdown and progress
+        function updateCountdown() {
+            if (!offWorkTime || !startDateTime) return;
+            
+            const now = new Date();
+            const diff = offWorkTime - now;
+            
+            const remainingEl = document.getElementById('remaining');
+            const remainingText = document.getElementById('remaining-text');
+            const remainingSecs = document.getElementById('remaining-seconds');
+            const progressFill = document.getElementById('xp-fill');
+            const progressText = document.getElementById('progress-text');
+            const statusEl = document.getElementById('status');
+            
+            if (diff <= 0) {
+                // Off-work time reached!
+                remainingText.innerHTML = '🎉 퇴근 완료!';
+                remainingText.style.color = '#F4D03F';
+                remainingSecs.textContent = '이제 모험을 떠나세요!';
+                remainingSecs.style.color = '#4CAF50';
+                
+                progressFill.style.width = '100%';
+                progressText.textContent = '100%';
+                document.getElementById('xp-text').textContent = 'LVL MAX! 🏠';
+                
+                statusEl.style.display = 'block';
+                statusEl.className = 'status ready';
+                statusEl.innerHTML = '🏠 퇴근 성공! 크리퍼 없이 안전하게 집으로!';
+                
+                // Stop interval
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                return;
+            }
+            
+            // Calculate remaining time
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            let displayText = '';
+            if (hours > 0) {
+                displayText = `${hours}시간 ${minutes}분`;
+            } else {
+                displayText = `${minutes}분`;
+            }
+            remainingText.innerHTML = displayText;
+            remainingText.style.color = hours > 2 ? '#4CAF50' : (hours > 0 ? '#F4D03F' : '#ff6b6b');
+            remainingSecs.textContent = `${seconds}초 남음`;
+            remainingSecs.style.color = '#4CAF50';
+            
+            // Progress calculation
+            const elapsedMs = now - startDateTime;
+            let progress = 0;
+            
+            if (elapsedMs > 0 && totalWorkMs > 0) {
+                progress = Math.min(100, Math.max(0, (elapsedMs / totalWorkMs) * 100));
+            }
+            
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+            
+            // Update level text
+            const levelText = document.getElementById('xp-text');
+            if (progress < 25) {
+                levelText.textContent = `LVL 1 • ${Math.round(progress)}%`;
+            } else if (progress < 50) {
+                levelText.textContent = `LVL 2 • ${Math.round(progress)}%`;
+            } else if (progress < 75) {
+                levelText.textContent = `LVL 3 • ${Math.round(progress)}%`;
+            } else if (progress < 100) {
+                levelText.textContent = `LVL 4 • ${Math.round(progress)}%`;
+            } else {
+                levelText.textContent = 'LVL MAX! 🏠';
+            }
+            
+            // Status update
+            statusEl.style.display = 'block';
+            if (hours < 1 && minutes < 30) {
+                statusEl.className = 'status ready';
+                statusEl.innerHTML = '⏳ 곧 퇴근! 마지막 스퍼트!';
+            } else if (hours < 2) {
+                statusEl.className = 'status ready';
+                statusEl.innerHTML = '🔥 거의 다 왔어요! 화이팅!';
+            } else {
+                statusEl.style.display = 'none';
+            }
+        }
+        
+        // Reset everything
+        function resetCalculator() {
+            // Clear interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            
+            // Reset variables
+            offWorkTime = null;
+            startDateTime = null;
+            totalWorkMs = 0;
+            
+            // Reset UI
+            document.getElementById('off-time').innerHTML = `<div class="result-time" style="color: #F4D03F;">--:--</div>`;
+            document.getElementById('remaining-text').innerHTML = '--시간 --분';
+            document.getElementById('remaining-text').style.color = '#fff';
+            document.getElementById('remaining-seconds').textContent = '--초';
+            document.getElementById('remaining-seconds').style.color = '#4CAF50';
+            
+            document.getElementById('xp-fill').style.width = '0%';
+            document.getElementById('progress-text').textContent = '0%';
+            document.getElementById('xp-text').textContent = 'LVL 0 / 8h';
+            
+            const statusEl = document.getElementById('status');
+            statusEl.style.display = 'none';
+            
+            // Reset inputs to defaults
+            document.getElementById('start-time').value = '09:00';
+            document.getElementById('work-hours').value = '8';
+            document.getElementById('lunch-mins').value = '60';
+            
+            // Show initial tip
+            document.getElementById('tip-text').textContent = '크리퍼를 조심하며 퇴근하세요! 💥';
+        }
+        
+        // Keyboard support
+        function setupKeyboard() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const active = document.activeElement;
+                    if (active.tagName === 'INPUT') {
+                        calculateOffWork();
+                    }
+                }
+                
+                if (e.key.toLowerCase() === 'r' && document.activeElement.tagName === 'BODY') {
+                    resetCalculator();
+                }
+            });
+            
+            // Click anywhere on result panel to recalculate if ready
+            const resultPanel = document.querySelector('.result-panel');
+            resultPanel.addEventListener('click', function() {
+                if (offWorkTime) {
+                    // Just refresh countdown
+                    updateCountdown();
+                }
+            });
+        }
+        
+        // Initialize everything
+        function init() {
+            // Set default tip
+            document.getElementById('tip-text').textContent = tips[0];
+            
+            // Start live clock
+            updateLiveClock();
+            
+            // Initial clock display
+            const now = new Date();
+            document.getElementById('live-clock').textContent = now.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            // Setup keyboard
+            setupKeyboard();
+            
+            // Auto-set a nice default and calculate on load (demo)
+            setTimeout(() => {
+                // Uncomment next line if you want auto-demo on load
+                // calculateOffWork();
+            }, 1200);
+            
+            // Easter egg: Click title to spawn creeper
+            const title = document.querySelector('.title');
+            title.addEventListener('click', function() {
+                const creeper = document.createElement('div');
+                creeper.textContent = '💥';
+                creeper.style.position = 'absolute';
+                creeper.style.fontSize = '3rem';
+                creeper.style.left = Math.random() * 80 + '%';
+                creeper.style.top = '20px';
+                creeper.style.transition = 'all 0.6s ease';
+                creeper.style.zIndex = '999';
+                title.parentNode.appendChild(creeper);
+                
+                setTimeout(() => {
+                    creeper.style.transform = 'translateY(60px) scale(0.2)';
+                    creeper.style.opacity = '0';
+                }, 100);
+                
+                setTimeout(() => {
+                    creeper.remove();
+                }, 800);
+            });
+            
+            // Welcome message in console for fun
+            console.log('%c[MINECRAFT] 퇴근시간 계산기 로드 완료! ⛏️', 'color:#4CAF50');
+        }
+        
+        // Boot the app
+        window.onload = init;
+    </script>
+</body>
+</html>
